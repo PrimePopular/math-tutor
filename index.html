@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Prime Math Hub | MAT 201 & 202</title>
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script src="https://unpkg.com/mathlive"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        math-field { border: none; outline: none; width: 100%; font-size: 1.5rem; background: transparent; color: white; }
+        .chat-container { height: calc(100vh - 280px); }
+        /* Hide default virtual keyboard on mobile to use MathLive's optimized one */
+        math-field::part(virtual-keyboard-toggle) { display: none; }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100 flex flex-col min-h-screen">
+
+    <header class="p-4 border-b border-gray-800 bg-gray-900 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-blue-500 tracking-tighter">PRIME HUB <span class="text-xs text-gray-500 font-normal">v1.0</span></h1>
+        <div id="status" class="text-xs text-green-500">Brain Online</div>
+    </header>
+
+    <main id="chat-display" class="chat-container overflow-y-auto p-4 space-y-4 flex-1">
+        <div class="bg-gray-800 p-3 rounded-lg max-w-[80%] border-l-4 border-blue-500">
+            Hello! I'm the Prime Math Brain. I specialize in MAT 201/202. Use the visual keyboard below to type your problem.
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 border-t border-gray-800 p-4 pb-8">
+        <div class="bg-black rounded-xl p-3 border border-gray-700 mb-3 shadow-inner">
+            <math-field id="user-input" placeholder="Type equation here...">f(x)=</math-field>
+        </div>
+        
+        <div class="flex gap-2">
+            <button onclick="toggleMode()" id="mode-btn" class="bg-gray-800 px-4 py-3 rounded-lg font-bold text-xs uppercase">Math Mode</button>
+            <button onclick="solve()" class="flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-black text-white shadow-lg transition-all active:scale-95">
+                SOLVE PROBLEM
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        const mf = document.getElementById('user-input');
+        const chat = document.getElementById('chat-display');
+        const API_URL = "https://api-inference.huggingface.co/models/Dreamprime/Math-Brain-v1";
+        const TOKEN = "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";
+
+        // Logic for Mobile vs Laptop
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+            mf.virtualKeyboardMode = "onfocus"; // Forces our custom math keyboard on mobile
+        }
+
+        function toggleMode() {
+            const btn = document.getElementById('mode-btn');
+            if (mf.mode === 'math') {
+                mf.mode = 'text';
+                btn.innerText = "Text Mode";
+                btn.classList.replace('bg-gray-800', 'bg-green-900');
+            } else {
+                mf.mode = 'math';
+                btn.innerText = "Math Mode";
+                btn.classList.replace('bg-green-900', 'bg-gray-800');
+            }
+        }
+
+        async function solve() {
+            const question = mf.getValue(); // Gets clean LaTeX code
+            if(!question) return;
+
+            // 1. Add User Question to UI
+            chat.innerHTML += `<div class="self-end ml-auto bg-blue-900 p-3 rounded-lg max-w-[80%] text-right font-semibold">\[ ${question} \]</div>`;
+            mf.setValue(""); // Clear input
+            
+            // 2. Refresh MathJax to render the user's input nicely
+            MathJax.typesetPromise();
+
+            try {
+                const response = await fetch(API_URL, {
+                    headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" },
+                    method: "POST",
+                    body: JSON.stringify({ inputs: question }),
+                });
+                
+                const result = await response.json();
+                const aiResponse = result[0]?.generated_text || "Brain is still loading. Try again in 10 seconds.";
+
+                // 3. Display AI Response
+                chat.innerHTML += `<div class="bg-gray-800 p-4 rounded-lg border-l-4 border-blue-500 whitespace-pre-wrap">${aiResponse}</div>`;
+                
+                // 4. Final Refresh to make AI math look like a textbook
+                MathJax.typesetPromise();
+                chat.scrollTop = chat.scrollHeight;
+
+            } catch (err) {
+                chat.innerHTML += `<div class="text-red-500 text-xs">Connection Error. Is your token active?</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
