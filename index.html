@@ -3,102 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Prime Math Hub | MAT 201 & 202</title>
+    <title>Prime Hub - AI Math Brain</title>
     
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
-    <script src="https://unpkg.com/mathlive"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        math-field { border: none; outline: none; width: 100%; font-size: 1.5rem; background: transparent; color: white; }
-        .chat-container { height: calc(100vh - 280px); }
-        /* Hide default virtual keyboard on mobile to use MathLive's optimized one */
-        math-field::part(virtual-keyboard-toggle) { display: none; }
-    </style>
-</head>
-<body class="bg-gray-950 text-gray-100 flex flex-col min-h-screen">
-
-    <header class="p-4 border-b border-gray-800 bg-gray-900 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-blue-500 tracking-tighter">PRIME HUB <span class="text-xs text-gray-500 font-normal">v1.0</span></h1>
-        <div id="status" class="text-xs text-green-500">Brain Online</div>
-    </header>
-
-    <main id="chat-display" class="chat-container overflow-y-auto p-4 space-y-4 flex-1">
-        <div class="bg-gray-800 p-3 rounded-lg max-w-[80%] border-l-4 border-blue-500">
-            Hello! I'm the Prime Math Brain. I specialize in MAT 201/202. Use the visual keyboard below to type your problem.
-        </div>
-    </main>
-
-    <footer class="bg-gray-900 border-t border-gray-800 p-4 pb-8">
-        <div class="bg-black rounded-xl p-3 border border-gray-700 mb-3 shadow-inner">
-            <math-field id="user-input" placeholder="Type equation here...">f(x)=</math-field>
-        </div>
-        
-        <div class="flex gap-2">
-            <button onclick="toggleMode()" id="mode-btn" class="bg-gray-800 px-4 py-3 rounded-lg font-bold text-xs uppercase">Math Mode</button>
-            <button onclick="solve()" class="flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-black text-white shadow-lg transition-all active:scale-95">
-                SOLVE PROBLEM
-            </button>
-        </div>
-    </footer>
-
-    <script>
-        const mf = document.getElementById('user-input');
-        const chat = document.getElementById('chat-display');
-        const API_URL = "https://api-inference.huggingface.co/models/Dreamprime/Math-Brain-v1";
-        const TOKEN = "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";
-
-        // Logic for Mobile vs Laptop
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        if (isMobile) {
-            mf.virtualKeyboardMode = "onfocus"; // Forces our custom math keyboard on mobile
+        :root {
+            --prime-blue: #007bff;
+            --bg-dark: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #ffffff;
         }
 
-        function toggleMode() {
-            const btn = document.getElementById('mode-btn');
-            if (mf.mode === 'math') {
-                mf.mode = 'text';
-                btn.innerText = "Text Mode";
-                btn.classList.replace('bg-gray-800', 'bg-green-900');
-            } else {
-                mf.mode = 'math';
-                btn.innerText = "Math Mode";
-                btn.classList.replace('bg-green-900', 'bg-gray-800');
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Status Bar - Shows the Brain is Live */
+        .status-bar {
+            background: #2a2a2a;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        .dot { height: 10px; width: 10px; background-color: #4caf50; border-radius: 50%; display: inline-block; margin-right: 8px; }
+
+        /* Main Container */
+        .hub-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        textarea {
+            width: 100%;
+            background: #252525;
+            color: white;
+            border: 1px solid #444;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1rem;
+            resize: none;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            background: var(--prime-blue);
+            color: white;
+            border: none;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:active { transform: scale(0.98); }
+
+        /* "Sweet View" Output Box */
+        #output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #111;
+            border-left: 4px solid var(--prime-blue);
+            border-radius: 5px;
+            min-height: 50px;
+            font-size: 1.1rem;
+            overflow-x: auto;
+        }
+
+        /* --- MODAL LOGIC (The Speaker Bug Fix) --- */
+        .modal-overlay {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            width: 85%;
+            max-width: 400px;
+            position: relative;
+            text-align: center;
+        }
+
+        /* Mobile View Tweaks */
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .hub-card { border-radius: 0; padding: 15px; }
+            button { font-size: 1.1rem; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="status-bar">
+        <span class="dot"></span> Brain Status: <strong>Permanently Online</strong>
+    </div>
+
+    <div class="hub-card">
+        <h3>Prime Math Brain</h3>
+        <p style="color: #888; font-size: 0.8rem;">Enter your MAT 201/202 question below:</p>
+        
+        <textarea id="questionInput" rows="4" placeholder="e.g. y'' - 9y' + 20y = 0"></textarea>
+        
+        <button onclick="solveMath()">SOLVE WITH AI</button>
+        <button onclick="openModal()" style="background: #333; margin-top: 10px;">SPEAKER SETTINGS</button>
+
+        <div id="output">Waiting for input...</div>
+    </div>
+
+    <div id="speakerModal" class="modal-overlay" onclick="closeModalOnOutsideClick(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2>Speaker Config</h2>
+            <p>Voice: AI Master (Female)</p>
+            <p>Speed: 1.0x</p>
+            <button onclick="closeModal()" style="background: red;">CLOSE</button>
+            <p style="font-size: 0.7rem; margin-top: 15px; color: #666;">Tip: Tap anywhere outside this box to exit.</p>
+        </div>
+    </div>
+
+    <script>
+        // 1. SUPABASE LOGIC (The Secure Bridge)
+        async function solveMath() {
+            const question = document.getElementById('questionInput').value;
+            const outputDiv = document.getElementById('output');
+            
+            if(!question) return alert("Please type a question!");
+
+            outputDiv.innerHTML = "Thinking...";
+
+            try {
+                // YOUR SECURE ENDPOINT
+                const PROXY_URL = "https://ptpvpsdcnubunztqczcn.supabase.co/functions/v1/math-brain";
+
+                const response = await fetch(PROXY_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question: question })
+                });
+
+                const data = await response.json();
+                
+                // Render with MathJax for the "Sweet View"
+                outputDiv.innerHTML = `\\(${data[0].generated_text}\\)`;
+                MathJax.typeset(); 
+
+            } catch (err) {
+                outputDiv.innerHTML = "<span style='color:red;'>Error connecting to Brain. Check Supabase secrets.</span>";
+                console.error(err);
             }
         }
 
-        async function solve() {
-            const question = mf.getValue(); // Gets clean LaTeX code
-            if(!question) return;
+        // 2. MODAL LOGIC (The Fix for the "Speaker Bug")
+        const modal = document.getElementById('speakerModal');
 
-            // 1. Add User Question to UI
-            chat.innerHTML += `<div class="self-end ml-auto bg-blue-900 p-3 rounded-lg max-w-[80%] text-right font-semibold">\[ ${question} \]</div>`;
-            mf.setValue(""); // Clear input
-            
-            // 2. Refresh MathJax to render the user's input nicely
-            MathJax.typesetPromise();
+        function openModal() {
+            modal.style.display = 'flex';
+        }
 
-            try {
-                const response = await fetch(API_URL, {
-                    headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" },
-                    method: "POST",
-                    body: JSON.stringify({ inputs: question }),
-                });
-                
-                const result = await response.json();
-                const aiResponse = result[0]?.generated_text || "Brain is still loading. Try again in 10 seconds.";
+        function closeModal() {
+            modal.style.display = 'none';
+        }
 
-                // 3. Display AI Response
-                chat.innerHTML += `<div class="bg-gray-800 p-4 rounded-lg border-l-4 border-blue-500 whitespace-pre-wrap">${aiResponse}</div>`;
-                
-                // 4. Final Refresh to make AI math look like a textbook
-                MathJax.typesetPromise();
-                chat.scrollTop = chat.scrollHeight;
-
-            } catch (err) {
-                chat.innerHTML += `<div class="text-red-500 text-xs">Connection Error. Is your token active?</div>`;
+        // The "Magic" fix: If the user clicks the dark overlay, close it.
+        function closeModalOnOutsideClick(event) {
+            if (event.target === modal) {
+                closeModal();
             }
         }
     </script>
