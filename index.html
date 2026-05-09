@@ -3,147 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Prime Hub - AI Math</title>
+    <title>Prime Hub</title>
     
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
-        :root {
-            --prime-blue: #007bff;
-            --bg-dark: #121212;
-            --card-bg: #1e1e1e;
-            --text-main: #ffffff;
-        }
+        :root { --p-blue: #007bff; --dark: #121212; --card: #1e1e1e; }
+        body { background: var(--dark); color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+        
+        .status { background: #2a2a2a; padding: 10px 20px; border-radius: 30px; margin-bottom: 25px; border: 1px solid #444; font-size: 0.9rem; }
+        .dot { height: 10px; width: 10px; background: #4caf50; border-radius: 50%; display: inline-block; margin-right: 8px; }
 
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .status-bar {
-            background: #2a2a2a;
-            padding: 8px 18px;
-            border-radius: 25px;
-            font-size: 0.85rem;
-            margin-bottom: 25px;
-            border: 1px solid #333;
-        }
-        .dot { height: 10px; width: 10px; background-color: #4caf50; border-radius: 50%; display: inline-block; margin-right: 8px; }
-
-        .hub-card {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 480px;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-            box-sizing: border-box;
-        }
-
-        h2 { margin-top: 0; font-weight: 600; }
-
-        textarea {
-            width: 100%;
-            background: #252525;
-            color: white;
-            border: 1px solid #444;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 1.05rem;
-            resize: none;
-            box-sizing: border-box;
-            margin-bottom: 15px;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 16px;
-            border-radius: 12px;
-            border: none;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-bottom: 10px;
-        }
-        .btn-solve { background: var(--prime-blue); color: white; }
-        .btn-solve:active { background: #0056b3; transform: scale(0.98); }
+        .hub-card { background: var(--card); width: 100%; max-width: 480px; padding: 25px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); box-sizing: border-box; }
+        
+        textarea { width: 100%; background: #252525; color: white; border: 1px solid #444; padding: 15px; border-radius: 12px; font-size: 1.1rem; resize: none; box-sizing: border-box; margin-bottom: 15px; }
+        
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
+        .btn-solve { background: var(--p-blue); color: white; }
+        .btn-solve:active { transform: scale(0.98); }
         .btn-settings { background: #333; color: #ccc; }
 
-        /* Output Box (The Display Method) */
-        #output {
-            margin-top: 20px;
-            padding: 18px;
-            background: #000;
-            border-left: 4px solid var(--prime-blue);
-            border-radius: 8px;
-            min-height: 60px;
-            font-size: 1.1rem;
-            line-height: 1.6;
-            overflow-x: auto;
-        }
+        #output { margin-top: 20px; padding: 18px; background: #000; border-left: 4px solid var(--p-blue); border-radius: 8px; min-height: 60px; font-size: 1.1rem; line-height: 1.5; overflow-x: auto; }
 
-        /* MODAL (Settings Only - No Voice) */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-box {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 20px;
-            width: 85%;
-            max-width: 380px;
-            text-align: center;
-            border: 1px solid #444;
-        }
-
-        /* Mobile View Optimization */
-        @media (max-width: 500px) {
-            body { padding: 15px; }
-            .hub-card { padding: 20px; }
-            textarea { font-size: 1rem; }
-        }
+        /* Modal Logic */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background: var(--card); padding: 30px; border-radius: 20px; width: 85%; max-width: 380px; text-align: center; border: 1px solid #444; }
     </style>
 </head>
 <body>
 
-    <div class="status-bar">
-        <span class="dot"></span> Brain Status: <strong>Permanently Online</strong>
-    </div>
+    <div class="status"><span class="dot"></span> Brain Status: <strong>Permanently Online</strong></div>
 
     <div class="hub-card">
-        <h2>Prime Hub</h2>
-        <p style="color: #888; font-size: 0.9rem; margin-bottom: 15px;">Paste your MAT 201/202 equation below:</p>
+        <h2 style="margin: 0 0 10px 0;">Prime Hub</h2>
+        <p style="color: #888; margin-bottom: 20px;">MAT 201/202 specialization.</p>
         
-        <textarea id="mathTask" rows="4" placeholder="e.g. y'' - 5y' + 6y = 0"></textarea>
+        <textarea id="mathTask" rows="4" placeholder="Type equation here..."></textarea>
         
         <button class="btn btn-solve" onclick="runSolver()">SOLVE WITH AI</button>
         <button class="btn btn-settings" onclick="toggleModal(true)">UI SETTINGS</button>
 
-        <div id="output">Ready to solve.</div>
+        <div id="output">System ready.</div>
     </div>
 
     <div id="uiModal" class="modal-overlay" onclick="toggleModal(false)">
         <div class="modal-box" onclick="event.stopPropagation()">
-            <h3>Hub Settings</h3>
-            <p style="color: #aaa; font-size: 0.9rem;">Theme: Prime Dark</p>
-            <p style="color: #aaa; font-size: 0.9rem;">Rendering: MathJax 3.0</p>
-            <button class="btn" onclick="toggleModal(false)" style="background: #e74c3c; color: white; margin-top: 15px;">CLOSE</button>
-            <p style="font-size: 0.75rem; color: #555; margin-top: 10px;">Tip: Tap the background to exit.</p>
+            <h3>Hub Interface</h3>
+            <p style="color: #aaa; font-size: 0.9rem;">Renderer: MathJax 3.0</p>
+            <button class="btn" onclick="toggleModal(false)" style="background: #e74c3c; color: white; margin-top: 20px;">CLOSE</button>
         </div>
     </div>
 
@@ -156,7 +63,7 @@
             outputBox.innerHTML = "<span style='color: #007bff;'>Connecting to Brain...</span>";
 
             try {
-                // CORRECTED ENDPOINT: Matches your laptop browser test (underscore)
+                // VERIFIED LINK: matches your laptop browser test exactly
                 const ENDPOINT = "https://ptpvpsdcnubunztqczcn.supabase.co/functions/v1/math_brain";
 
                 const response = await fetch(ENDPOINT, {
@@ -169,21 +76,16 @@
 
                 const data = await response.json();
 
-                // Logic to extract the answer text
-                let finalAnswer = "";
-                if (Array.isArray(data)) {
-                    finalAnswer = data[0].generated_text || data[0];
-                } else {
-                    finalAnswer = data.generated_text || data.result || JSON.stringify(data);
-                }
+                // Logic to handle the new Edge Function's answer format
+                let finalAnswer = data.answer || data.generated_text || data[0]?.generated_text || "No response received.";
 
-                // Render in high-quality math view
                 outputBox.innerHTML = `\\(${finalAnswer}\\)`;
+                
+                // Re-render the math to make it look "Sweet"
                 MathJax.typesetPromise();
 
             } catch (err) {
                 outputBox.innerHTML = "<span style='color:#ff4d4d;'>Connection Failed. Check your internet or Supabase logs.</span>";
-                console.error("Hub Error:", err);
             }
         }
 
@@ -191,6 +93,5 @@
             document.getElementById('uiModal').style.display = show ? 'flex' : 'none';
         }
     </script>
-
 </body>
 </html>
