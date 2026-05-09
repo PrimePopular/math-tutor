@@ -2,195 +2,82 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Prime Hub - AI Math Brain</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Hub - Math Brain</title>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
     <style>
-        :root {
-            --prime-blue: #007bff;
-            --bg-dark: #121212;
-            --card-bg: #1e1e1e;
-            --text-main: #ffffff;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* Status Bar - Shows the Brain is Live */
-        .status-bar {
-            background: #2a2a2a;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-            border: 1px solid #333;
-        }
-        .dot { height: 10px; width: 10px; background-color: #4caf50; border-radius: 50%; display: inline-block; margin-right: 8px; }
-
-        /* Main Container */
-        .hub-card {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 500px;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        textarea {
-            width: 100%;
-            background: #252525;
-            color: white;
-            border: 1px solid #444;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 1rem;
-            resize: none;
-            box-sizing: border-box;
-        }
-
-        button {
-            width: 100%;
-            background: var(--prime-blue);
-            color: white;
-            border: none;
-            padding: 15px;
-            margin-top: 15px;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        button:active { transform: scale(0.98); }
-
-        /* "Sweet View" Output Box */
-        #output {
-            margin-top: 20px;
-            padding: 15px;
-            background: #111;
-            border-left: 4px solid var(--prime-blue);
-            border-radius: 5px;
-            min-height: 50px;
-            font-size: 1.1rem;
-            overflow-x: auto;
-        }
-
-        /* --- MODAL LOGIC (The Speaker Bug Fix) --- */
-        .modal-overlay {
-            display: none; /* Hidden by default */
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 15px;
-            width: 85%;
-            max-width: 400px;
-            position: relative;
-            text-align: center;
-        }
-
-        /* Mobile View Tweaks */
-        @media (max-width: 600px) {
-            body { padding: 10px; }
-            .hub-card { border-radius: 0; padding: 15px; }
-            button { font-size: 1.1rem; padding: 20px; }
-        }
+        :root { --p-blue: #007bff; --dark: #121212; --card: #1e1e1e; }
+        body { background: var(--dark); color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+        .status { background: #2a2a2a; padding: 10px 20px; border-radius: 30px; margin-bottom: 25px; border: 1px solid #444; font-size: 0.9rem; }
+        .dot { height: 10px; width: 10px; background: #4caf50; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .hub-card { background: var(--card); width: 100%; max-width: 480px; padding: 25px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); box-sizing: border-box; }
+        textarea { width: 100%; background: #252525; color: white; border: 1px solid #444; padding: 15px; border-radius: 12px; font-size: 1.1rem; resize: none; box-sizing: border-box; margin-bottom: 15px; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; font-size: 1rem; cursor: pointer; margin-bottom: 10px; }
+        .btn-solve { background: var(--p-blue); color: white; }
+        .btn-settings { background: #333; color: #ccc; }
+        #output { margin-top: 20px; padding: 18px; background: #000; border-left: 4px solid var(--p-blue); border-radius: 8px; min-height: 60px; font-size: 1.1rem; overflow-x: auto; }
+        
+        /* Modal Fix */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background: var(--card); padding: 30px; border-radius: 20px; width: 85%; max-width: 380px; text-align: center; border: 1px solid #444; }
     </style>
 </head>
 <body>
 
-    <div class="status-bar">
-        <span class="dot"></span> Brain Status: <strong>Permanently Online</strong>
-    </div>
+    <div class="status"><span class="dot"></span> Brain Status: <strong>Permanently Online</strong></div>
 
     <div class="hub-card">
-        <h3>Prime Math Brain</h3>
-        <p style="color: #888; font-size: 0.8rem;">Enter your MAT 201/202 question below:</p>
-        
-        <textarea id="questionInput" rows="4" placeholder="e.g. y'' - 9y' + 20y = 0"></textarea>
-        
-        <button onclick="solveMath()">SOLVE WITH AI</button>
-        <button onclick="openModal()" style="background: #333; margin-top: 10px;">SPEAKER SETTINGS</button>
-
-        <div id="output">Waiting for input...</div>
+        <h2 style="margin: 0 0 10px 0;">Prime Hub</h2>
+        <textarea id="mathTask" rows="4" placeholder="Type y'' - 5y' + 6y = 0"></textarea>
+        <button class="btn btn-solve" onclick="runSolver()">SOLVE WITH AI</button>
+        <button class="btn btn-settings" onclick="toggleModal(true)">UI SETTINGS</button>
+        <div id="output">System ready.</div>
     </div>
 
-    <div id="speakerModal" class="modal-overlay" onclick="closeModalOnOutsideClick(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <h2>Speaker Config</h2>
-            <p>Voice: AI Master (Female)</p>
-            <p>Speed: 1.0x</p>
-            <button onclick="closeModal()" style="background: red;">CLOSE</button>
-            <p style="font-size: 0.7rem; margin-top: 15px; color: #666;">Tip: Tap anywhere outside this box to exit.</p>
+    <div id="uiModal" class="modal-overlay" onclick="toggleModal(false)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <h3>Settings</h3>
+            <p style="color: #aaa;">MathJax Rendering: Active</p>
+            <button class="btn" onclick="toggleModal(false)" style="background: #e74c3c; color: white;">CLOSE</button>
         </div>
     </div>
 
     <script>
-        // 1. SUPABASE LOGIC (The Secure Bridge)
-        async function solveMath() {
-            const question = document.getElementById('questionInput').value;
-            const outputDiv = document.getElementById('output');
-            
-            if(!question) return alert("Please type a question!");
+        async function runSolver() {
+            const mathTask = document.getElementById('mathTask').value;
+            const outputBox = document.getElementById('output');
+            if(!mathTask) return;
 
-            outputDiv.innerHTML = "Thinking...";
+            outputBox.innerHTML = "<span style='color: #007bff;'>Connecting to Brain...</span>";
 
             try {
-                // YOUR SECURE ENDPOINT
-                const PROXY_URL = "https://ptpvpsdcnubunztqczcn.supabase.co/functions/v1/math-brain";
+                // FIXED URL - MATCHES YOUR PROJECT ID
+                const ENDPOINT = "https://ptpvpsdcnubunztqczcn.supabase.co/functions/v1/math-brain";
 
-                const response = await fetch(PROXY_URL, {
+                const response = await fetch(ENDPOINT, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ question: question })
+                    body: JSON.stringify({ question: mathTask })
                 });
 
                 const data = await response.json();
-                
-                // Render with MathJax for the "Sweet View"
-                outputDiv.innerHTML = `\\(${data[0].generated_text}\\)`;
-                MathJax.typeset(); 
+
+                if (data.error) {
+                    outputBox.innerHTML = `<span style='color:red;'>Brain Error: ${data.error}</span>`;
+                } else {
+                    // Logic to handle different response styles
+                    let result = Array.isArray(data) ? data[0].generated_text : (data.generated_text || JSON.stringify(data));
+                    outputBox.innerHTML = `\\(${result}\\)`;
+                    MathJax.typeset();
+                }
 
             } catch (err) {
-                outputDiv.innerHTML = "<span style='color:red;'>Error connecting to Brain. Check Supabase secrets.</span>";
-                console.error(err);
+                outputBox.innerHTML = "<span style='color:red;'>Connection Failed. Check Supabase Logs on your laptop.</span>";
             }
         }
 
-        // 2. MODAL LOGIC (The Fix for the "Speaker Bug")
-        const modal = document.getElementById('speakerModal');
-
-        function openModal() {
-            modal.style.display = 'flex';
-        }
-
-        function closeModal() {
-            modal.style.display = 'none';
-        }
-
-        // The "Magic" fix: If the user clicks the dark overlay, close it.
-        function closeModalOnOutsideClick(event) {
-            if (event.target === modal) {
-                closeModal();
-            }
+        function toggleModal(show) {
+            document.getElementById('uiModal').style.display = show ? 'flex' : 'none';
         }
     </script>
 </body>
